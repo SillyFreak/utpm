@@ -1,9 +1,10 @@
 use std::{
-    env::{self, current_dir},
+    env::current_dir,
     fs::read_dir,
     path::{Path, PathBuf},
 };
 
+use crate::args::get_args;
 use crate::path;
 
 use super::state::{Result, UtpmError};
@@ -17,10 +18,6 @@ pub const MANIFEST_FILE: &str = "typst.toml";
 /// The subdirectory for locally cloned git packages.
 pub const LOCAL_PACKAGES: &str = "git-packages";
 
-fn env_path(key: &str) -> Option<PathBuf> {
-    env::var(key).ok().map(PathBuf::from)
-}
-
 fn not_found(message: &str) -> UtpmError {
     std::io::Error::new(std::io::ErrorKind::NotFound, message).into()
 }
@@ -30,7 +27,10 @@ fn not_found(message: &str) -> UtpmError {
 /// This path can be overridden by setting the `TYPST_PACKAGE_CACHE_PATH` environment variable.
 /// It is used for storing packages downloaded from the typst registry.
 pub fn package_cache_path() -> Result<PathBuf> {
-    env_path("TYPST_PACKAGE_CACHE_PATH")
+    get_args()
+        .paths
+        .package_cache_path
+        .clone()
         .or_else(typst_kit::package::default_package_cache_path)
         .ok_or_else(|| not_found("Could not find package cache directory"))
 }
@@ -40,7 +40,10 @@ pub fn package_cache_path() -> Result<PathBuf> {
 /// This path can be overridden by setting the `TYPST_PACKAGE_PATH` environment variable.
 /// It is used for storing local packages.
 pub fn package_path() -> Result<PathBuf> {
-    env_path("TYPST_PACKAGE_PATH")
+    get_args()
+        .paths
+        .package_path
+        .clone()
         .or_else(typst_kit::package::default_package_path)
         .ok_or_else(|| not_found("Could not find package directory"))
 }
@@ -52,7 +55,10 @@ pub fn package_path() -> Result<PathBuf> {
 /// This path can be overridden by setting the `UTPM_DATA_PATH` environment variable.
 /// It is used for storing local packages.
 pub fn utpm_data_path() -> Result<PathBuf> {
-    env_path("UTPM_DATA_PATH")
+    get_args()
+        .paths
+        .utpm_data_path
+        .clone()
         .or_else(|| dirs::data_dir().map(|data_dir| path!(data_dir, UTPM_SUBDIR)))
         .ok_or_else(|| not_found("Could not find utpm data directory"))
 }
@@ -67,7 +73,10 @@ pub fn local_package_path() -> Result<PathBuf> {
 /// This path can be overridden by setting the `UTPM_CURRENT_DIR` environment variable.
 /// It is used for reading and writing the `typst.toml` manifest.
 pub fn get_current_dir() -> Result<PathBuf> {
-    env_path("UTPM_CURRENT_DIR")
+    get_args()
+        .paths
+        .utpm_current_dir
+        .clone()
         .ok_or(())
         .or_else(|()| current_dir())
         .map_err(Into::into)

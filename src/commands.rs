@@ -427,6 +427,40 @@ pub enum Commands {
     Generate(GenerateArgs),
 }
 
+// taken from https://github.com/typst/typst/blob/v0.14.2/crates/typst-cli/src/args.rs#L394-L408
+// License: Apache 2.0
+/// Arguments related to where packages are stored in the system.
+#[derive(Parser, Debug, Clone, PartialEq)]
+pub struct PathArgs {
+    /// Custom path to local packages, defaults to system-dependent location.
+    #[arg(long = "package-path", env = "TYPST_PACKAGE_PATH", value_name = "DIR")]
+    pub package_path: Option<PathBuf>,
+
+    /// Custom path to package cache, defaults to system-dependent location.
+    #[arg(
+        long = "package-cache-path",
+        env = "TYPST_PACKAGE_CACHE_PATH",
+        value_name = "DIR"
+    )]
+    pub package_cache_path: Option<PathBuf>,
+
+    /// Custom path to UTPM data, defaults to system-dependent location.
+    #[arg(
+        long = "utpm-data-path",
+        env = "UTPM_DATA_PATH",
+        value_name = "DIR"
+    )]
+    pub utpm_data_path: Option<PathBuf>,
+
+    /// Custom path to UTPM data, defaults to system-dependent location.
+    #[arg(
+        long = "utpm-current-dir",
+        env = "UTPM_CURRENT_DIR",
+        value_name = "DIR"
+    )]
+    pub utpm_current_dir: Option<PathBuf>,
+}
+
 /// An unofficial typst package manager for your projects.
 #[derive(Parser, Debug, PartialEq)]
 #[command(author = "Thumuss & typst-community", version = build::PKG_VERSION)]
@@ -462,4 +496,8 @@ pub struct Cli {
     /// Example: utpm --dry-run prj link
     #[arg(default_value_t = false, short = 'D', long, global = true)]
     pub dry_run: bool,
+
+    /// Arguments related to storage of packages in the system.
+    #[clap(flatten)]
+    pub paths: PathArgs,
 }
